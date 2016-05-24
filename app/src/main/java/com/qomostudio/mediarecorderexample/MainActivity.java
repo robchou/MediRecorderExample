@@ -1,9 +1,11 @@
 package com.qomostudio.mediarecorderexample;
 
+import android.app.Activity;
 import android.hardware.Camera;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.widget.ImageButton;
@@ -29,6 +31,7 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
     protected void onResume() {
         super.onResume();
         mCamera = getCameraInstance(Camera.CameraInfo.CAMERA_FACING_BACK);
+        setCameraDisplayOrientation(this, Camera.CameraInfo.CAMERA_FACING_BACK, mCamera);
     }
 
     @Override
@@ -57,6 +60,29 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
         return c;
     }
 
+    public static void setCameraDisplayOrientation(Activity activity,
+                                                   int cameraId, Camera camera) {
+        Camera.CameraInfo info = new Camera.CameraInfo();
+        Camera.getCameraInfo(cameraId, info);
+        int rotation = activity.getWindowManager().getDefaultDisplay().getRotation();
+        int degrees = 0;
+        switch (rotation) {
+            case Surface.ROTATION_0: degrees = 0; break;
+            case Surface.ROTATION_90: degrees = 90; break;
+            case Surface.ROTATION_180: degrees = 180; break;
+            case Surface.ROTATION_270: degrees = 270; break;
+        }
+
+        int result;
+        if (info.facing == Camera.CameraInfo.CAMERA_FACING_FRONT) {
+            result = (info.orientation + degrees) % 360;
+            result = (360 - result) % 360;
+        } else {
+            result = (info.orientation - degrees + 360) % 360;
+        }
+        camera.setDisplayOrientation(result);
+    }
+
     private void releaseCamera() {
         if (mCamera != null) {
             mCamera.release();
@@ -66,12 +92,12 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
 
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
-        Log.i(TAG, "surfaceCreated");
+        Log.i(TAG, "#### surfaceCreated ####");
     }
 
     @Override
     public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
-        Log.i(TAG, "surfaceChanged");
+        Log.i(TAG, "#### surfaceChanged ####");
         if (mCamera != null) {
             try {
                 mCamera.setPreviewDisplay(holder);
@@ -84,6 +110,6 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
 
     @Override
     public void surfaceDestroyed(SurfaceHolder holder) {
-        Log.i(TAG, "surfaceDestroyed");
+        Log.i(TAG, "#### surfaceDestroyed ####");
     }
 }
